@@ -1,3 +1,7 @@
+<img width="2011" height="1643" alt="image" src="https://github.com/user-attachments/assets/5cdb86c7-bcf8-4d93-ac92-18b9deec27cb" />
+
+
+
 # 🛁 Capybara Onsen: AI-Powered Hybrid Puzzle Engine
 
 > **Course Project**: Generative AI Product Engineering
