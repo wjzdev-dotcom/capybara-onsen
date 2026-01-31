@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Capybara - Yuzu Onsen Puzzle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="static/favicon.ico" type="image/x-icon">
+    <style>
+        :root {
+            --primary: #ff9a8b;
+            --secondary: #4ecdc4;
+            --accent: #ffe66d;
+            --dark: #1a535c;
+            --light: #f7fff7;
+            --wood: #8b4513;
+            --stone: #a9a9a9;
+            --water: #87ceeb;
+            --yuzu-yellow: #FFD700;
+            --yuzu-green: #8FBC8F;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fad0c4, #ffafbd);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 5px solid var(--wood);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        .game-title {
+            font-size: 52px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .subtitle {
+            font-size: 22px;
+            color: var(--dark);
+            font-weight: 400;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, var(--water), #a8e6cf);
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 3px solid var(--dark);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            min-width: 160px;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--dark);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--primary);
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .game-area {
+            flex: 1;
+            min-width: 500px;
+        }
+        
+        .side-panel {
+            flex: 0 0 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        /* Game Board Container */
+        .game-board-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border: 5px solid var(--wood);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 580px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-board-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, transparent 95%, rgba(139, 69, 19, 0.1) 100%),
+                linear-gradient(135deg, transparent 95%, rgba(139, 69, 19, 0.1) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        #game-board {
+            border-collapse: collapse;
+            border: 4px solid var(--dark);
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .game-cell {
+            width: 55px;
+            height: 55px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: visible;
+            transition: all 0.2s ease;
+        }
+        
+        .cell-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .floor-layer {
+            z-index: 1;
+        }
+        
+        .goal-layer {
+            z-index: 2;
+        }
+        
+        .yuzu-layer {
+            z-index: 3;
+        }
+        
+        .player-layer {
+            z-index: 4;
+        }
+        
+        .wall-layer {
+            z-index: 5;
+        }
+        
+        .cell-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+        
+        .yuzu-on-onsen {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* Instructions Panel */
+        .instructions-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 5px solid var(--wood);
+        }
+        
+        .panel-title {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+        }
+        
+        .panel-title i {
+            color: var(--primary);
+        }
+        
+        .instructions-list {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+        
+        .instructions-list li {
+            padding: 12px 0;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        
+        .instructions-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .instructions-list li i {
+            color: var(--secondary);
+            font-size: 18px;
+        }
+        
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 5px solid var(--wood);
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+        }
+        
+        .control-btn {
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .control-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #333;
+        }
+        
+        .btn-new {
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            color: #333;
+        }
+        
+        .btn-hint {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            color: #333;
+        }
+        
+        .btn-music {
+            background: linear-gradient(135deg, #d4fc79, #96e6a1);
+            color: #333;
+        }
+        
+        /* Message Panel */
+        .message-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 5px solid var(--wood);
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #game-message {
+            font-size: 20px;
+            text-align: center;
+            color: var(--dark);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        
+        /* Key Controls */
+        .key-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        
+        .key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--dark);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-family: monospace;
+            font-size: 20px;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+            min-width: 60px;
+            height: 50px;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 70px;
+            height: 70px;
+            border: 6px solid var(--stone);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+            margin-bottom: 25px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Element Legend */
+        .legend-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .legend-icon {
+            font-size: 28px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Water Effect for Yuzu in Onsen */
+        .water-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(135, 206, 235, 0.3) 0%, rgba(135, 206, 235, 0) 70%);
+            border-radius: 50%;
+            animation: ripple 2s ease-in-out infinite;
+        }
+        
+        @keyframes ripple {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1100px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .game-area, .side-panel {
+                width: 100%;
+            }
+            
+            .side-panel {
+                flex: 0 0 auto;
+            }
+            
+            .game-area {
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 40px;
+            }
+            
+            .stat-box {
+                min-width: 140px;
+                padding: 12px 20px;
+            }
+            
+            .stat-value {
+                font-size: 30px;
+            }
+            
+            .game-cell {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .legend-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-cell {
+                width: 38px;
+                height: 38px;
+            }
+            
+            .game-title {
+                font-size: 32px;
+            }
+            
+            .stat-box {
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="game-title">GHOST CAPYBARA</h1>
+            <p class="subtitle">Yuzu Onsen Puzzle Adventure</p>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-label">LEVEL</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">SCORE</div>
+                    <div class="stat-value" id="score">100 ¥</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">MOVES</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">TIME</div>
+                    <div class="stat-value" id="timer">0s</div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Game Board -->
+            <div class="game-area">
+                <div class="game-board-container">
+                    <div class="loading" id="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Preparing onsen experience...</p>
+                    </div>
+                    <table id="game-board">
+                        <!-- Game board will be generated here -->
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Side Panel -->
+            <div class="side-panel">
+                <!-- Instructions -->
+                <div class="instructions-panel">
+                    <h2 class="panel-title"><i class="fas fa-book-open"></i> HOW TO PLAY</h2>
+                    <ul class="instructions-list">
+                        <li><i class="fas fa-arrow-up"></i> Move the Capybara with <strong>Arrow Keys</strong> or <strong>WASD</strong></li>
+                        <li><i class="fas fa-lemon"></i> Push all <strong>3 Yuzu Fruits</strong> into <strong>Onsen Baths</strong></li>
+                        <li><i class="fas fa-hand-paper"></i> Yuzu floats in water - be careful!</li>
+                        <li><i class="fas fa-redo"></i> Use <strong>Reset Level</strong> to start over</li>
+                        <li><i class="fas fa-music"></i> Enjoy traditional onsen music</li>
+                    </ul>
+                    
+                    <div class="key-controls">
+                        <div class="key">↑</div>
+                        <div class="key">W</div>
+                        <div style="align-self: center; font-weight: 600;">Up</div>
+                        <div class="key">↓</div>
+                        <div class="key">S</div>
+                        <div style="align-self: center; font-weight: 600;">Down</div>
+                        <div class="key">←</div>
+                        <div class="key">A</div>
+                        <div style="align-self: center; font-weight: 600;">Left</div>
+                        <div class="key">→</div>
+                        <div class="key">D</div>
+                        <div style="align-self: center; font-weight: 600;">Right</div>
+                    </div>
+                    
+                    <div class="legend-container">
+                        <div class="legend-item">
+                            <div class="legend-icon">🦦</div>
+                            <div>Ghost Capybara</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon">🍋</div>
+                            <div>Yuzu Fruit</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon">♨️</div>
+                            <div>Onsen Bath</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon">🧱</div>
+                            <div>Stone Wall</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controls -->
+                <div class="controls-panel">
+                    <h2 class="panel-title"><i class="fas fa-gamepad"></i> CONTROLS</h2>
+                    <div class="controls-grid">
+                        <button class="control-btn btn-reset" onclick="resetLevel()">
+                            <i class="fas fa-redo"></i>
+                            RESET LEVEL
+                        </button>
+                        <button class="control-btn btn-new" onclick="newLevel()">
+                            <i class="fas fa-map"></i>
+                            NEW LEVEL
+                        </button>
+                        <button class="control-btn btn-hint" onclick="getHint()">
+                            <i class="fas fa-lightbulb"></i>
+                            GET HINT
+                        </button>
+                        <button class="control-btn btn-music" onclick="toggleMusic()">
+                            <i class="fas fa-music"></i>
+                            <span id="music-text">MUSIC: ON</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Messages -->
+                <div class="message-panel">
+                    <div id="game-message">
+                        Welcome to Ghost Capybara Onsen!<br>
+                        Push yuzu fruits to hot springs and relax.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Audio Elements -->
+    <audio id="bg-music" loop>
+        <!-- Background music will be selected dynamically -->
+    </audio>
+    <audio id="move-sound" src="static/splash.wav"></audio>
+    <audio id="win-sound" src="static/win.wav"></audio>
+    
+    <script>
+        // Game State
+        let currentLevel = 1;
+        let score = 100;
+        let moveCount = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let playerX = 0, playerY = 0;
+        let grid = [];
+        let gameActive = false;
+        let musicEnabled = true;
+        let currentTrackIndex = 0;
+        let goalPositions = []; // Track onsen positions
+        
+        // Audio tracks
+        const tracks = [
+            'static/track1.wav', 'static/track2.wav', 'static/track3.wav',
+            'static/track4.wav', 'static/track5.wav', 'static/track6.wav',
+            'static/track7.wav', 'static/track8.wav', 'static/track9.wav',
+            'static/track10.wav'
+        ];
+        
+        // Initialize the game
+        async function initGame() {
+            showLoading(true);
+            showMessage("Preparing your onsen experience...");
+            await loadLevel();
+            showLoading(false);
+        }
+        
+        // Show/hide loading state
+        function showLoading(show) {
+            const loadingEl = document.getElementById('loading');
+            if (show) {
+                loadingEl.classList.add('active');
+            } else {
+                loadingEl.classList.remove('active');
+            }
+        }
+        
+        // Show game message
+        function showMessage(message) {
+            const messageEl = document.getElementById('game-message');
+            messageEl.innerHTML = message;
+            
+            // Add fade animation
+            messageEl.style.animation = 'none';
+            setTimeout(() => {
+                messageEl.style.animation = 'fadeIn 0.5s';
+            }, 10);
+        }
+        
+        // Load a level from the API
+        async function loadLevel() {
+            try {
+                showLoading(true);
+                
+                const response = await fetch('/api/generate-level', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.grid) {
+                    throw new Error("Invalid level data received");
+                }
+                
+                grid = data.grid;
+                gameActive = true;
+                moveCount = 0;
+                
+                // Update UI
+                document.getElementById('level').textContent = currentLevel;
+                document.getElementById('score').textContent = score + ' ¥';
+                document.getElementById('moves').textContent = moveCount;
+                
+                if (data.dialogues && data.dialogues.length > 0) {
+                    showMessage(data.dialogues[0]);
+                }
+                
+                // Find goal positions
+                goalPositions = [];
+                for (let y = 0; y < 10; y++) {
+                    for (let x = 0; x < 10; x++) {
+                        if (grid[y][x] === 4) {
+                            goalPositions.push({x, y});
+                        }
+                    }
+                }
+                
+                renderBoard();
+                findPlayer();
+                
+                // Start timer
+                startTimer();
+                
+                // Play background music
+                if (musicEnabled) {
+                    playBackgroundMusic();
+                }
+                
+            } catch (error) {
+                console.error('Error loading level:', error);
+                showMessage('Error loading level. Using fallback level.');
+                createFallbackLevel();
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Create a fallback level if API fails
+        function createFallbackLevel() {
+            grid = [
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,2,0,0,0,0,1],
+                [1,0,0,0,3,0,3,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,4,0,0,0,4,0,0,1],
+                [1,0,0,0,3,0,4,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1]
+            ];
+            
+            // Find goal positions
+            goalPositions = [];
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    if (grid[y][x] === 4) {
+                        goalPositions.push({x, y});
+                    }
+                }
+            }
+            
+            renderBoard();
+            findPlayer();
+            showMessage("Welcome to Ghost Capybara Onsen! Push yuzu fruits to hot springs.");
+            startTimer();
+        }
+        
+        // Render the game board with layered images
+        function renderBoard() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            
+            for (let y = 0; y < 10; y++) {
+                const row = document.createElement('tr');
+                
+                for (let x = 0; x < 10; x++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'game-cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    
+                    const cellValue = grid[y][x];
+                    
+                    // Layer 1: Floor (always present except for walls)
+                    if (cellValue !== 1) {
+                        const floorLayer = document.createElement('div');
+                        floorLayer.className = 'cell-layer floor-layer';
+                        const floorImg = document.createElement('img');
+                        floorImg.src = 'static/floor.png';
+                        floorImg.className = 'cell-image';
+                        floorImg.alt = 'floor';
+                        floorLayer.appendChild(floorImg);
+                        cell.appendChild(floorLayer);
+                    }
+                    
+                    // Layer 2: Onsen (if this is a goal position)
+                    const isGoal = goalPositions.some(g => g.x === x && g.y === y);
+                    if (isGoal) {
+                        const goalLayer = document.createElement('div');
+                        goalLayer.className = 'cell-layer goal-layer';
+                        const goalImg = document.createElement('img');
+                        goalImg.src = 'static/goal.png';
+                        goalImg.className = 'cell-image';
+                        goalImg.alt = 'onsen';
+                        goalLayer.appendChild(goalImg);
+                        cell.appendChild(goalLayer);
+                    }
+                    
+                    // Layer 3: Yuzu fruit (if this cell contains yuzu)
+                    if (cellValue === 3) {
+                        const yuzuLayer = document.createElement('div');
+                        yuzuLayer.className = 'cell-layer yuzu-layer';
+                        
+                        // Check if yuzu is on an onsen
+                        const yuzuOnOnsen = isGoal;
+                        
+                        const yuzuImg = document.createElement('img');
+                        if (yuzuOnOnsen) {
+                            yuzuImg.src = 'static/box_on_goal.png'; // Yuzu in water
+                            yuzuLayer.classList.add('yuzu-on-onsen');
+                            
+                            // Add water effect
+                            const waterEffect = document.createElement('div');
+                            waterEffect.className = 'water-effect';
+                            yuzuLayer.appendChild(waterEffect);
+                        } else {
+                            yuzuImg.src = 'static/box.png'; // Regular yuzu
+                        }
+                        yuzuImg.className = 'cell-image';
+                        yuzuImg.alt = 'yuzu';
+                        yuzuLayer.appendChild(yuzuImg);
+                        cell.appendChild(yuzuLayer);
+                    }
+                    
+                    // Layer 4: Player (capybara)
+                    if (cellValue === 2) {
+                        const playerLayer = document.createElement('div');
+                        playerLayer.className = 'cell-layer player-layer';
+                        const playerImg = document.createElement('img');
+                        playerImg.src = 'static/player.png';
+                        playerImg.className = 'cell-image';
+                        playerImg.alt = 'capybara';
+                        playerLayer.appendChild(playerImg);
+                        cell.appendChild(playerLayer);
+                    }
+                    
+                    // Layer 5: Wall (if this cell is a wall)
+                    if (cellValue === 1) {
+                        const wallLayer = document.createElement('div');
+                        wallLayer.className = 'cell-layer wall-layer';
+                        const wallImg = document.createElement('img');
+                        wallImg.src = 'static/wall.png';
+                        wallImg.className = 'cell-image';
+                        wallImg.alt = 'wall';
+                        wallLayer.appendChild(wallImg);
+                        cell.appendChild(wallLayer);
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                board.appendChild(row);
+            }
+        }
+        
+        // Find player position in the grid
+        function findPlayer() {
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    if (grid[y][x] === 2) {
+                        playerX = x;
+                        playerY = y;
+                        return;
+                    }
+                }
+            }
+        }
+        
+        // Move the player
+        function movePlayer(dx, dy) {
+            if (!gameActive) return;
+            
+            const newX = playerX + dx;
+            const newY = playerY + dy;
+            
+            // Check bounds
+            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) {
+                showMessage("Can't leave the onsen area!");
+                return;
+            }
+            
+            // Check wall
+            if (grid[newY][newX] === 1) {
+                showMessage("There's a stone wall in the way!");
+                return;
+            }
+            
+            // Check if pushing a yuzu
+            if (grid[newY][newX] === 3) {
+                const boxX = newX + dx;
+                const boxY = newY + dy;
+                
+                // Check if yuzu can be pushed
+                if (boxX < 0 || boxX >= 10 || boxY < 0 || boxY >= 10) {
+                    showMessage("Can't push yuzu out of the onsen!");
+                    return;
+                }
+                if (grid[boxY][boxX] === 1) {
+                    showMessage("Can't push yuzu into a wall!");
+                    return;
+                }
+                if (grid[boxY][boxX] === 3) {
+                    showMessage("Can't push yuzu into another yuzu!");
+                    return;
+                }
+                
+                // Move the yuzu
+                grid[newY][newX] = 0;
+                grid[boxY][boxX] = 3;
+                
+                // Play move sound
+                playSound('move-sound');
+                showMessage("Pushing yuzu fruit...");
+            } else {
+                // Play move sound for regular movement too
+                playSound('move-sound');
+            }
+            
+            // Move player
+            grid[playerY][playerX] = 0;
+            grid[newY][newX] = 2;
+            
+            playerX = newX;
+            playerY = newY;
+            
+            // Update move count
+            moveCount++;
+            document.getElementById('moves').textContent = moveCount;
+            
+            renderBoard();
+            checkWin();
+        }
+        
+        // Check win condition
+        function checkWin() {
+            // Count how many yuzu are in onsen baths
+            let yuzuInOnsen = 0;
+            
+            for (let goal of goalPositions) {
+                if (grid[goal.y][goal.x] === 3) {
+                    yuzuInOnsen++;
+                }
+            }
+            
+            // If all yuzu are in onsen baths
+            if (yuzuInOnsen === 3) {
+                gameActive = false;
+                
+                // Calculate score bonus
+                const timeElapsed = Math.floor((Date.now() - startTime) / 1000);
+                const timeBonus = Math.max(0, 300 - timeElapsed);
+                const moveBonus = Math.max(0, 200 - moveCount);
+                const levelBonus = currentLevel * 50;
+                
+                const totalBonus = timeBonus + moveBonus + levelBonus;
+                score += totalBonus;
+                
+                // Stop timer
+                clearInterval(timerInterval);
+                
+                // Play win sound
+                playSound('win-sound');
+                
+                // Show win message
+                showMessage(`
+                    🎉 ONSEN COMPLETE! 🎉<br>
+                    Time Bonus: ${timeBonus}¥<br>
+                    Move Bonus: ${moveBonus}¥<br>
+                    Level Bonus: ${levelBonus}¥<br>
+                    <strong>Total Score: ${score}¥</strong><br><br>
+                    The yuzu are happily floating in the hot springs!
+                `);
+                
+                // Update score display
+                document.getElementById('score').textContent = score + ' ¥';
+                
+                // Increase level for next round
+                currentLevel++;
+                document.getElementById('level').textContent = currentLevel;
+                
+                // Celebration effect
+                const board = document.getElementById('game-board');
+                board.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    board.style.transform = 'scale(1)';
+                }, 500);
+            } else if (yuzuInOnsen > 0) {
+                // Some yuzu are in onsen
+                showMessage(`${yuzuInOnsen} yuzu in onsen, ${3 - yuzuInOnsen} to go!`);
+            }
+        }
+        
+        // Start the game timer
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            startTime = Date.now();
+            moveCount = 0;
+            
+            // Update timer every second
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').textContent = elapsed + 's';
+                document.getElementById('moves').textContent = moveCount;
+            }, 1000);
+        }
+        
+        // Play a sound
+        function playSound(soundId) {
+            if (!musicEnabled) return;
+            
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+        
+        // Play background music
+        function playBackgroundMusic() {
+            if (!musicEnabled) return;
+            
+            const bgMusic = document.getElementById('bg-music');
+            
+            // Select a random track
+            currentTrackIndex = Math.floor(Math.random() * tracks.length);
+            bgMusic.src = tracks[currentTrackIndex];
+            
+            bgMusic.volume = 0.4;
+            bgMusic.play().catch(e => {
+                console.log("Background music play failed:", e);
+            });
+        }
+        
+        // Toggle music on/off
+        function toggleMusic() {
+            const bgMusic = document.getElementById('bg-music');
+            const musicText = document.getElementById('music-text');
+            
+            musicEnabled = !musicEnabled;
+            
+            if (musicEnabled) {
+                musicText.textContent = 'MUSIC: ON';
+                bgMusic.play().catch(e => console.log("Music play failed:", e));
+            } else {
+                musicText.textContent = 'MUSIC: OFF';
+                bgMusic.pause();
+            }
+        }
+        
+        // Reset current level
+        function resetLevel() {
+            showMessage("Resetting onsen...");
+            loadLevel();
+            playSound('move-sound');
+        }
+        
+        // Load a new level
+        function newLevel() {
+            showMessage("Preparing new onsen level...");
+            loadLevel();
+            playSound('move-sound');
+        }
+        
+        // Get hint
+        function getHint() {
+            showMessage("💡 Hint: Yuzu fruits float in water. Push them carefully to the onsen baths!");
+            playSound('move-sound');
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            // Prevent default behavior for game keys
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 
+                 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(e.key)) {
+                e.preventDefault();
+            }
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    movePlayer(1, 0);
+                    break;
+                case 'r':
+                case 'R':
+                    resetLevel();
+                    break;
+                case 'n':
+                case 'N':
+                    newLevel();
+                    break;
+                case 'h':
+                case 'H':
+                    getHint();
+                    break;
+                case 'm':
+                case 'M':
+                    toggleMusic();
+                    break;
+            }
+        });
+        
+        // Initialize game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            .game-board-container {
+                transition: transform 0.3s ease;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Try to start audio on first user interaction
+        document.addEventListener('click', function initAudio() {
+            if (musicEnabled) {
+                const bgMusic = document.getElementById('bg-music');
+                bgMusic.play().catch(e => console.log("Audio initialization failed:", e));
+            }
+            document.removeEventListener('click', initAudio);
+        }, { once: true });
+    </script>
+</body>
+</html>
